@@ -18,12 +18,36 @@ def OnRawData(identifier, packets):
         if m["type"] == "accl":
             insert_accelerometer_data(m["payload"])
 
+def drone_is_idle():
+    return False
+
+drone_state = "off"
+
+def state_machine():
+    global drone_state
+    if drone_state == "off":
+        if hand_state["palm_state"] == "fwd":
+            print("Liftoff")
+            drone_state = "liftoff"
+    elif drone_state == "liftoff":
+        drone_state = "idle"
+    elif drone_state == "idle":
+        if hand_state["palm_state"] == "down":
+            print("Joynstic cmd")
+
+    if hand_state["palm_state"] == "bwd":
+        print("Land")
+        drone_state = "land"
+    if drone_is_idle():
+        drone_state = "idle"
 
 async def systick():
     while True:
-        print(hand_state)
-        print(my_drone.stats)
-        await asyncio.sleep(1)
+        print(hand_state["palm_state"])
+        # print(my_drone.stats)
+        print(drone_state)
+        state_machine()
+        await asyncio.sleep(0.1)
 systick.task = []
 
 def stop_systick():
