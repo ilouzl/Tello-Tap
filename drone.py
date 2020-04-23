@@ -26,16 +26,10 @@ class MyTello(Tello):
         #     v = s.split(':')
         #     self.stats[v[0]] = int(v[1])
 
-    def loop_stats(self):
-        while True:
-            self.read_stats()
-            sleep(0.2)
-        
 
 if __name__ == "__main__":
-    stdscr = curses.initscr()
-    curses.noecho()
-    curses.cbreak()
-
     my_drone = MyTello(tello_ip="127.0.0.1")
-    my_drone.loop_stats()
+        while True:
+        my_drone.read_stats()
+            sleep(0.2)
+        
