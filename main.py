@@ -20,6 +20,21 @@ def OnRawData(identifier, packets):
             pass
         if m["type"] == "accl":
             insert_accelerometer_data(m["payload"])
+            strap_heart_beat = time.time()
+            
+
+def takeoff_finished():
+    # if height > 0.8:
+    #     return True
+    # return False
+    return True
+
+def landing_finished():
+    # if height < 0.1:
+    #     return True
+    # else:
+    #     return False
+    return True
 
 def drone_is_idle():
     return False
@@ -33,17 +48,26 @@ def goto_landing():
     # my_drone.land()
 
 
+def goto_takeoff():
+    global drone_state
+    drone_state = "takeoff"
+    # my_drone.takeoff()
+
+
+
 def state_machine():
     global drone_state
     if drone_state == "off":
         if hand_state["palm_state"] == "fwd":
-            print("Liftoff")
-            drone_state = "liftoff"
-    elif drone_state == "liftoff":
+            goto_takeoff()
+    elif drone_state == "takeoff":
+        if takeoff_finished():
         drone_state = "idle"
     elif drone_state == "idle":
         if hand_state["palm_state"] == "down":
-            print("Joynstic cmd")
+    elif drone_state == "landing":
+        if landing_finished():
+            drone_state = "off"
 
     if hand_state["palm_state"] == "bwd":
         goto_landing()
