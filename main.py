@@ -36,8 +36,21 @@ def landing_finished():
     #     return False
     return True
 
-def drone_is_idle():
-    return False
+def do_joystick_cmd():
+    a = 0 # right/left
+    b = 0 # fwd/bwd
+    c = 0 # up/down
+    d = 0 # yaw r/l
+
+    if hand_state["thumb_palm_parallel"] == True:
+        a = hand_state["joystick"][1]
+        b = hand_state["joystick"][0]
+    else:
+        c = hand_state["joystick"][0]
+        d = hand_state["joystick"][1]
+    print("RC:", a, b, c, d)
+    # my_drone.rc_control(a,b,c,d)
+
 
 drone_state = "off"
 
@@ -65,6 +78,7 @@ def state_machine():
         drone_state = "idle"
     elif drone_state == "idle":
         if hand_state["palm_state"] == "down":
+            do_joystick_cmd()
     elif drone_state == "landing":
         if landing_finished():
             drone_state = "off"

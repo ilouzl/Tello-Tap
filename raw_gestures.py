@@ -12,7 +12,8 @@ accl_q = deque(maxlen=int(1*FS))
 state = {
     "joystick":(0,0),
     "palm_state":"down",
-    "thumb_state":"down"
+    "thumb_state":"down",
+    "thumb_palm_parallel":False
     }
 
 
@@ -22,7 +23,7 @@ def joystick_emulation(accl):
     phi = np.rad2deg(np.arctan2(m[1],np.sqrt(m[0]**2 + m[2]**2)))
     theta = np.rad2deg(np.arctan2(m[0],np.sqrt(m[1]**2 + m[2]**2)))
 
-    state["joystick"] = (10*int(phi*10/90),10*int(theta*10/90))
+    state["joystick"] = (10*int(theta*10/90), 10*int(phi*10/90))
 
 
 def palm_state(accl):
@@ -42,6 +43,13 @@ def palm_state(accl):
             state["palm_state"] = "down"
         elif m[2] < -LSB2G*0.85:
             state["palm_state"] = "up"
+
+def thumb_fingers_parallel(accl):
+    m = accl[-int(FS*0.3):].mean(axis=0)[0::3]/LSB2G
+    if np.abs(m[0] - m[1::].mean()) < 0.3:
+        state["thumb_palm_parallel"] = True
+    else:
+        state["thumb_palm_parallel"] = False
 
 
 def thumb_state(accl):
@@ -70,4 +78,5 @@ def insert_accelerometer_data(accl):
     joystick_emulation(a)
     palm_state(a)
     thumb_state(a)
+    thumb_fingers_parallel(a)
 
