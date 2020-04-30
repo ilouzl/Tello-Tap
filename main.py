@@ -1,5 +1,6 @@
 import asyncio
 import os
+import time
 
 import numpy as np
 
@@ -9,9 +10,11 @@ from raw_gestures import state as hand_state
 from tapsdk import TapInputMode, TapSDK
 
 my_drone = MyTello(tello_ip="127.0.0.1", debug=False)
+strap_heart_beat = 0
 
 
 def OnRawData(identifier, packets):
+    global strap_heart_beat
     for m in packets:
         if m["type"] == "imu":
             pass
@@ -22,6 +25,13 @@ def drone_is_idle():
     return False
 
 drone_state = "off"
+
+
+def goto_landing():
+    global drone_state
+    drone_state = "landing"
+    # my_drone.land()
+
 
 def state_machine():
     global drone_state
@@ -36,10 +46,10 @@ def state_machine():
             print("Joynstic cmd")
 
     if hand_state["palm_state"] == "bwd":
-        print("Land")
-        drone_state = "land"
-    if drone_is_idle():
-        drone_state = "idle"
+        goto_landing()
+    
+    if drone_state != "off" and strap_heart_beat + 2 < time.time():
+        goto_landing()
 
 async def systick():
     while True:

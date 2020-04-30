@@ -22,14 +22,16 @@ class MyTello(Tello):
         out = response.replace(';', ';\n')
         if self.debug is True:
             print('Tello State:\n' + out)
-        # for s in response.split(';'):
-        #     v = s.split(':')
-        #     self.stats[v[0]] = int(v[1])
-
+        if len(response) > 50:
+            for s in response.split(';'):
+                v = s.split(':')
+                self.stats[v[0]] = int(v[1])
+        else:
+            self.stats["hello"] = out
+            
 
 if __name__ == "__main__":
     my_drone = MyTello(tello_ip="127.0.0.1")
-        while True:
+    while True:
         my_drone.read_stats()
-            sleep(0.2)
-        
+        sleep(0.2)
