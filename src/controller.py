@@ -22,6 +22,7 @@ signal.signal(signal.SIGINT, abort_handler)
 my_drone = MyTello(tello_ip="127.0.0.1", debug=False)
 # my_drone = MyTello(debug=False)
 strap_heart_beat = 0
+dry_run = True
 
 
 def OnRawData(identifier, packets):
@@ -35,32 +36,40 @@ def OnRawData(identifier, packets):
             
 
 def takeoff_finished():
-    # if height > 0.8:
-    #     return True
-    # return False
+    if 0 < my_drone.get_stat_height() < 80 and not dry_run:
+        return False
     return True
 
 def landing_finished():
-    # if height < 0.1:
-    #     return True
-    # else:
-    #     return False
+    if my_drone.get_stat_height() > 10 and not dry_run:
+        return False
     return True
 
-def do_joystick_cmd():
-    a = 0 # right/left
-    b = 0 # fwd/bwd
-    c = 0 # up/down
-    d = 0 # yaw r/l
+def do_joystick_cmd(a=None, b=None, c=None, d=None):
+    # a = right/left
+    # b = fwd/bwd
+    # c = up/down
+    # d = yaw r/l
+    if a is None and b is None and c is None and d is None:
+        a = 0
+        b = 0
+        c = 0
+        d = 0
+        if hand_state["thumb_palm_parallel"] == True:
+            a = hand_state["joystick"][1]
+            b = hand_state["joystick"][0]
+        else:
+            c = hand_state["joystick"][0]
+            d = hand_state["joystick"][1]
 
-    if hand_state["thumb_palm_parallel"] == True:
-        a = hand_state["joystick"][1]
-        b = hand_state["joystick"][0]
-    else:
-        c = hand_state["joystick"][0]
-        d = hand_state["joystick"][1]
-    print("RC:", a, b, c, d)
-    # my_drone.rc_control(a,b,c,d)
+    clip_value = 30
+    values = [a,b,c,d]
+    for i,v in enumerate(values):
+        values[i] = max(-clip_value,min(clip_value,v))
+    a,b,c,d = values
+    if not dry_run:
+        my_drone.rc_control(a,b,c,d)
+    print("sent command: rc ", a, b, c, d)
 
 
 drone_state = "off"
@@ -69,13 +78,27 @@ drone_state = "off"
 def goto_landing():
     global drone_state
     drone_state = "landing"
-    # my_drone.land()
+    if not dry_run:
+        my_drone.land()
+    print("sent command: land")
 
 
 def goto_takeoff():
     global drone_state
     drone_state = "takeoff"
-    # my_drone.takeoff()
+    if not dry_run:
+        my_drone.takeoff()
+    print("sent command: takeoff")
+
+def goto_idle():
+    global drone_state
+    drone_state = "idle"
+    do_joystick_cmd(0,0,0,0)
+
+def goto_off():
+    global drone_state
+    drone_state = "off"
+    do_joystick_cmd(0,0,0,0)
 
 
 
@@ -86,28 +109,29 @@ def state_machine():
             goto_takeoff()
     elif drone_state == "takeoff":
         if takeoff_finished():
-            drone_state = "idle"
+            goto_idle()
     elif drone_state == "idle":
         if hand_state["palm_state"] == "down":
             do_joystick_cmd()
     elif drone_state == "landing":
         if landing_finished():
-            drone_state = "off"
+            goto_off()
 
     if hand_state["palm_state"] == "bwd":
         goto_landing()
     
     if drone_state != "off" and strap_heart_beat + 2 < time.time():
+        print("Missing Tap heart beat")
         goto_landing()
 
 async def systick():
     while True:
-        # print(hand_state["palm_state"])
-        # print(hand_state["thumb_palm_parallel"])een
+        print(hand_state["palm_state"])
+        print(hand_state["thumb_palm_parallel"])
         print(my_drone.stats)
         print(drone_state)
         state_machine()
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
 systick.task = []
 
 def stop_systick():
@@ -143,5 +167,4 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     systick.task = loop.create_task(systick())
     drone_stats_loop.task = loop.create_task(drone_stats_loop())
-    # loop.call_later(5, stop_periodic)
     loop.run_until_complete(run(loop))

@@ -14,6 +14,9 @@ class MyTello(Tello):
         self.stats_socket.bind((self.local_ip, self.local_port_stats))
         self.stats_socket.sendto('command'.encode('utf-8'), self.tello_address)
     
+    def get_stat_height(self):
+        return self.stats.get('h', -1)
+    
     def read_stats(self):
         response, ip = self.stats_socket.recvfrom(1024)
         if response == 'ok':
