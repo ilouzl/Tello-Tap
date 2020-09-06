@@ -1,0 +1,3 @@
+git+https://github.com/TapWithUs/tap-python-sdk.git@master#egg=tap-python-sdk
+easytello
+numpy
