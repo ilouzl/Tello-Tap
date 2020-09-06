@@ -19,11 +19,12 @@ Installation:
 Usage:
 1. Pair Tap with your machine.
 2. Connect your machine to Tello's Wifi (SSID: TELLO-XXXXX) 
-3. Run controller app ```python src/controller.py```
+3. Start the controller ```python src/controller.py```
 
 Controls:
-1. TBD
-
+1. Take-off - palm facing forward
+2. Land - palm facing backward
+3. Manouver - when palm facing downward, your handd acts like a joystick that controls Tello's translation.
 
 
 References:
