@@ -1,16 +1,26 @@
 import asyncio
 import os
+import signal
+import sys
 import time
 
 import numpy as np
+from tapsdk import TapInputMode, TapSDK
 
 from drone import MyTello
 from raw_gestures import insert_accelerometer_data
 from raw_gestures import state as hand_state
-from tapsdk import TapInputMode, TapSDK
 
-# my_drone = MyTello(tello_ip="127.0.0.1", debug=False)
-my_drone = MyTello(debug=False)
+
+def abort_handler(sig=None, frame=None):
+    print('Aborting...')
+    [goto_landing() for i in range(5)]
+    sys.exit(0)
+signal.signal(signal.SIGINT, abort_handler)
+
+
+my_drone = MyTello(tello_ip="127.0.0.1", debug=False)
+# my_drone = MyTello(debug=False)
 strap_heart_beat = 0
 
 
