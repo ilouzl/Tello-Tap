@@ -9,7 +9,8 @@ from raw_gestures import insert_accelerometer_data
 from raw_gestures import state as hand_state
 from tapsdk import TapInputMode, TapSDK
 
-my_drone = MyTello(tello_ip="127.0.0.1", debug=False)
+# my_drone = MyTello(tello_ip="127.0.0.1", debug=False)
+my_drone = MyTello(debug=False)
 strap_heart_beat = 0
 
 
