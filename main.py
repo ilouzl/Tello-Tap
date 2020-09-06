@@ -75,7 +75,7 @@ def state_machine():
             goto_takeoff()
     elif drone_state == "takeoff":
         if takeoff_finished():
-        drone_state = "idle"
+            drone_state = "idle"
     elif drone_state == "idle":
         if hand_state["palm_state"] == "down":
             do_joystick_cmd()
@@ -91,8 +91,9 @@ def state_machine():
 
 async def systick():
     while True:
-        print(hand_state["palm_state"])
-        # print(my_drone.stats)
+        # print(hand_state["palm_state"])
+        # print(hand_state["thumb_palm_parallel"])een
+        print(my_drone.stats)
         print(drone_state)
         state_machine()
         await asyncio.sleep(0.1)
@@ -116,7 +117,7 @@ def wrap_up():
     stop_systick()
     stop_drone_stats_loop()
 
-    
+
 async def run(loop):  
     client = TapSDK(loop)
     x = await client.manager.connect_retrieved()
